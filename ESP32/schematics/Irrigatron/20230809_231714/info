@@ -1,0 +1,236 @@
+{
+  "uuid": "a99ed604195cd05e5f669b10d7a76b74",
+  "path": "Offline/Irrigatron",
+  "name": "Irrigatron",
+  "content": "",
+  "created_at": "2023-08-09 16:54:33",
+  "updated_at": "2023-08-09 23:17:14",
+  "stick": "",
+  "documents": [
+    {
+      "uuid": "3362bd23d8dc65e21b794506956ab7d0",
+      "title": "Sheet_1",
+      "description": "",
+      "docType": "1",
+      "master": "",
+      "thumb": "/images/thumb-default.png",
+      "components": {
+        "a7291ceaee5442a999df26c55c7e675d": 18,
+        "3ec77201bbcd4ecd8722658d581a4e60": 4,
+        "8cb0931e7aee4571ab281a4f2e7b6e80": 9,
+        "eaa76950fd7343a1953943ee7b9978d3": 1,
+        "80d83f502025431ebd5a2c0cfa883c91": 1,
+        "2244314c88bd4c989fc2989020a26e2d": 1,
+        "b0248eb51e084227889f2cb84eab79c4": 12,
+        "e691ecce73f74adc83e15434646ffa2d": 2
+      },
+      "BOM": [
+        [
+          "Value",
+          "Quantity",
+          "Package",
+          "Components",
+          "CustomPara"
+        ],
+        [
+          "HDR-F-2.54_1x3",
+          18,
+          "HDR-F-2.54_1X3",
+          "3V,5V,DHT3,DHT4,FET1,FET2,FET3,FET4,FET5,FET6,FET7,FET8,SOIL1,SOIL2,SOIL3,SOIL4,SOIL5,SOIL6",
+          {
+            "Supplier Part": "C146690",
+            "Supplier": "LCSC",
+            "Manufacturer": "",
+            "Manufacturer Part": "",
+            "image": "",
+            "Contributor": "LCEDA_Lib",
+            "spiceSymbolName": "HDR-F-2.54_1x3",
+            "puuid": "f83673d09e13450d934ca6be4be5af8f",
+            "uuid": "a7291ceaee5442a999df26c55c7e675d"
+          }
+        ],
+        [
+          "HDR-F-2.54_1x10",
+          2,
+          "HDR-F-2.54_1X10",
+          "ADS1,ADS2",
+          {
+            "Supplier Part": "C35445",
+            "Supplier": "LCSC",
+            "Manufacturer": "",
+            "Manufacturer Part": "",
+            "Contributor": "LCEDA_Lib",
+            "spiceSymbolName": "HDR-F-2.54_1x10",
+            "puuid": "af1bce44cacb47cda450f7e17ba302b4",
+            "uuid": "e691ecce73f74adc83e15434646ffa2d"
+          }
+        ],
+        [
+          "HDR-F-2.54_1x2",
+          4,
+          "HDR-F-2.54_1X2",
+          "CONFIGURATION,LED,LIGHT,OTHER",
+          {
+            "Supplier Part": "C49661",
+            "Supplier": "LCSC",
+            "Manufacturer": "",
+            "Manufacturer Part": "",
+            "image": "",
+            "Contributor": "LCEDA_Lib",
+            "spiceSymbolName": "HDR-F-2.54_1x2",
+            "puuid": "36b1306a115341f4b4d9407fb34974e0",
+            "uuid": "3ec77201bbcd4ecd8722658d581a4e60"
+          }
+        ],
+        [
+          "HDR-F-2.54_2x8",
+          1,
+          "HDR-F-2.54_2X8",
+          "H1",
+          {
+            "Supplier Part": "C30734",
+            "Supplier": "LCSC",
+            "Manufacturer": "",
+            "Manufacturer Part": "",
+            "image": "",
+            "Contributor": "LCEDA_Lib",
+            "spiceSymbolName": "HDR-F-2.54_2x8",
+            "puuid": "7787e76d8edb40b781022f483e216f13",
+            "uuid": "2244314c88bd4c989fc2989020a26e2d"
+          }
+        ],
+        [
+          "CONN-TH_2P-P5.00",
+          9,
+          "CONN-TH_2P-P5.00",
+          "POWER,PUMP1,PUMP2,PUMP3,PUMP4,PUMP5,PUMP6,PUMP7,PUMP8",
+          {
+            "Supplier Part": "",
+            "Supplier": "LCSC",
+            "Manufacturer": "",
+            "Manufacturer Part": "",
+            "image": "",
+            "Contributor": "LCEDA_Lib",
+            "spiceSymbolName": "CONN-TH_2P-P5.00",
+            "puuid": "be1b3456245c4373bfecde52b7e1b1d6",
+            "uuid": "8cb0931e7aee4571ab281a4f2e7b6e80"
+          }
+        ],
+        [
+          "100",
+          8,
+          "R0603",
+          "R1,R2,R3,R4,R5,R6,R7,R8",
+          {
+            "Supplier Part": "",
+            "Supplier": "",
+            "Contributor": "LCEDA_Lib",
+            "spiceSymbolName": "R_0603_US",
+            "Manufacturer Part": "",
+            "puuid": "398691f1f785460098bbe5ee6590333c",
+            "uuid": "b0248eb51e084227889f2cb84eab79c4"
+          }
+        ],
+        [
+          "10K",
+          3,
+          "R0603",
+          "R9,R11,R12",
+          {
+            "Supplier Part": "",
+            "Supplier": "",
+            "Contributor": "LCEDA_Lib",
+            "spiceSymbolName": "R_0603_US",
+            "Manufacturer Part": "",
+            "puuid": "398691f1f785460098bbe5ee6590333c",
+            "uuid": "b0248eb51e084227889f2cb84eab79c4"
+          }
+        ],
+        [
+          "330",
+          1,
+          "R0603",
+          "R10",
+          {
+            "Supplier Part": "",
+            "Supplier": "",
+            "Contributor": "LCEDA_Lib",
+            "spiceSymbolName": "R_0603_US",
+            "Manufacturer Part": "",
+            "puuid": "398691f1f785460098bbe5ee6590333c",
+            "uuid": "b0248eb51e084227889f2cb84eab79c4"
+          }
+        ],
+        [
+          "NO",
+          1,
+          "DOIT ESP32 DEVKIT V1 (30PINS)",
+          "U1",
+          {
+            "Manufacturer": "",
+            "Manufacturer Part": "",
+            "Supplier Part": "",
+            "Supplier": "",
+            "link": "",
+            "Contributor": "BrIs1063",
+            "spiceSymbolName": "DOIT ESP32 DEVKIT V1 (30pins)",
+            "puuid": "3f49a8e02d524450a8a0bd0198bb9c1e",
+            "uuid": "80d83f502025431ebd5a2c0cfa883c91"
+          }
+        ],
+        [
+          "HDR-F-2.54_1x4",
+          1,
+          "HDR-F-2.54_1X4",
+          "ULTRASONIC",
+          {
+            "Supplier Part": "C225501",
+            "Supplier": "LCSC",
+            "Manufacturer": "",
+            "Manufacturer Part": "",
+            "Contributor": "LCEDA_Lib",
+            "spiceSymbolName": "HDR-F-2.54_1x4",
+            "puuid": "21473b495b6340c992965357d5701779",
+            "uuid": "eaa76950fd7343a1953943ee7b9978d3"
+          }
+        ]
+      ],
+      "updateTime": 1691615751,
+      "createTime": 1691592874,
+      "histories": [],
+      "created_at": "2023-08-09 16:54:34",
+      "updated_at": "2023-08-09 23:15:51"
+    },
+    {
+      "uuid": "0bed13074f6231b5d2d45a65d184250b",
+      "puuid": "a99ed604195cd05e5f669b10d7a76b74",
+      "title": "PCB_Irrigatron",
+      "filename": "PCB_Irrigatron.json",
+      "description": "",
+      "docType": "3",
+      "master": "",
+      "thumb": "/images/thumb-default.png",
+      "components": {
+        "f83673d09e13450d934ca6be4be5af8f": 18,
+        "af1bce44cacb47cda450f7e17ba302b4": 2,
+        "36b1306a115341f4b4d9407fb34974e0": 4,
+        "7787e76d8edb40b781022f483e216f13": 1,
+        "be1b3456245c4373bfecde52b7e1b1d6": 9,
+        "398691f1f785460098bbe5ee6590333c": 12,
+        "3f49a8e02d524450a8a0bd0198bb9c1e": 1,
+        "21473b495b6340c992965357d5701779": 1
+      },
+      "BOM": [],
+      "updateTime": 1691615834,
+      "createTime": 1691607834,
+      "histories": [],
+      "created_at": "2023-08-09 21:03:54",
+      "updated_at": "2023-08-09 23:17:14"
+    }
+  ],
+  "sort": [],
+  "title": "Irrigatron",
+  "foldername": "Irrigatron",
+  "schfilename": "Irrigatron.json",
+  "schfilemtime": 1691615751482
+}
