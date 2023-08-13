@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>IrrigaTRON</title>
+	
+	<link rel="stylesheet" href="/static/css/jquery-ui.min.css">
+	<link rel="stylesheet" href="/static/css/dataTables.bootstrap4.min.css">
+	<link rel="stylesheet" href="/static/css/bootstrap.min.css">
+
+	<script src="/static/js/jquery-3.7.0.min.js"></script>
+	<script src="/static/js/jquery-ui.min.js"></script>
+	
+	<style>
+		/* Estilos para hacer que la barra de navegación de la izquierda alcance el fondo de la vista */
+		body, html {
+			height: 100%;
+			margin: 0;
+			padding: 0;
+		}
+		.sidebar {
+			height: 100%;
+			position: fixed;
+
+		}
+		.sidebar-sticky {
+			position: sticky;
+			top: 0;
+			z-index: 1000;
+			height: calc(100vh - 56px); /* Resta la altura de la barra de navegación superior */
+			overflow-y: auto; /* Habilita el scroll en la lista */
+		}
+		.same_height{
+			height:66px;
+		}
+	</style>
+</head>
+<body>
+	<!-- Barra de Navegación Superior -->
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<div class="container-fluid">
+			<a class="navbar-brand" href="/home">Logo</a>
+			<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<a class="nav-link active" href="/home">Inicio</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</nav>
+
+	<!-- Contenedor principal -->
+	<div class="container-fluid">
+		<div class="row">
+			<!-- Barra de Navegación Izquierda -->
+			<nav class="col-md-3 col-lg-2 d-md-block navbar-dark bg-dark sidebar">
+				<div class="position-sticky sidebar-sticky">
+					<div class="btn-group-vertical" role="group" aria-label="Vertical button group">
+					
+						{% for p in plants %}
+							<a type="button" href="/plant/{{ p.name }}" class="btn btn-secondary">{{ p.pump }} - {{ p.name }}</a>
+						{% endfor %}
+					</div>
+				</div>
+			</nav>
+
+			<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+				<div class="row mt-4">
+					<div class="col">
+						<form method="POST" action="new_plant" class="bg-light border border-dark rounded">
+							<div class="d-flex justify-content-center">
+								<h1 class="display-4">New Plant</h1>
+							</div>
+							<div class="container">
+								<div class="input-group mb-3">
+									<div class="input-group-prepend">
+										<span class="input-group-text">Name</span>
+									</div>
+									<input type="text" class="form-control" name="name" aria-describedby="name" required>
+								</div>
+
+								<div class="input-group mb-3">
+									<div class="input-group-prepend">
+										<span class="input-group-text">Pump</span>
+									</div>
+									<input type="number" step="1" value="1" min="0" max="7" name="pump" class="form-control" aria-label="Pump" required>
+								</div>
+
+								<div class="input-group align-items-start">
+									<div class="input-group-prepend">
+										<span class="input-group-text same_height">Description</span>
+									</div>
+									<textarea class="form-control same_height" name="description" aria-label="description"></textarea>
+								</div>
+								
+								<div class="d-flex justify-content-center m-4">
+									<button type="submit" class="btn btn-lg btn-info">Submit</button>
+								</div>
+							</div>
+						</form>
+					</div>
+					<div class="col">
+					</div>
+				</div>
+			</main>
+		</div>
+	</div>
+
+	<script src="/static/js/jquery-3.7.0.min.js"></script>
+	<script src="/static/js/jquery-ui.min.js"></script>
+
+	<script src="/static/js/bootstrap.bundle.min.js"></script>
+	<script src="/static/js/dataTables.bootstrap4.min.js"></script>
+	<script src="/static/js/jquery.dataTables.min.js"></script>
+</body>
+</html>
