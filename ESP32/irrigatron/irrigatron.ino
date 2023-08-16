@@ -18,9 +18,8 @@
 #define PREFERENCES_FILE "myfile"
 #define PREFERENCES_SSID "p_wifi_ssid"
 #define PREFERENCES_SSID_PASSWORD "p_wifi_pass"
-#define PREFERENCES_TANK_HEIGHT "p_tank_height"
-
-#define LED_BUILTIN 2
+#define PREFERENCES_SERVER_ADDRESS "p_server_addr"
+#define PREFERENCES_SERVER_PORT "p_server_port"
 
 String html_code = "<!DOCTYPE html>\n" 
 "<html>\n" 
@@ -90,7 +89,8 @@ String html_code = "<!DOCTYPE html>\n"
 "   <h1>Irrigatron Configuration</h1>\n" 
 "   <input type=\"text\" placeholder=\"WiFi name\" name=\"ssid\" required>\n" 
 "   <input type=\"password\" placeholder=\"WiFi password\" name=\"pass\" required>\n" 
-"   <input type=\"number\" placeholder=\"Tank height\" name=\"tank\" step=\"0.1\" min=\"0\" required>\n" 
+"   <input type=\"text\" placeholder=\"Server address\" name=\"addr\" required>\n"
+"   <input type=\"number\" placeholder=\"server port\" min=\"0\" max=\"65535\" value=\"5000\" name=\"port\" required>\n"
 "   <input type=\"submit\" value=\"Submit\">\n" 
 " </form>\n" 
 "</body>\n" 
@@ -111,8 +111,8 @@ const int configPin = 18;
 //configurables
 String configurable_wifi_ssid = "";
 String configurable_wifi_pass = "";
-float configurable_tank_height = 0.0;
-
+String configurable_server_addr = "";
+int configurable_server_port = 5000;
 
 //globales
 bool server_available = true;
@@ -120,7 +120,7 @@ char* server = "192.168.1.138";
 String payload_to_server = "";
 bool pump_state[6] = {false, false, false, false, false, false};
 
-HTTP https(server, HTTP_PORT, false);  //server, port, debug
+HTTP https = HTTP();  //server, port, debug
 //HTTPS https(server, HTTPS_PORT, rootCA, false);  //server, port, rootCA, debug
 HTTPRequest httpRequest = HTTPRequest();
 HTTPResponse httpResponse = HTTPResponse();
@@ -150,15 +150,6 @@ void setup() {
   Serial.println("");
   
   logMessage("Iniciating program");
-
-  //Inicialization
-  logMessage("Iniciating sensors");
-  Wire.begin();
-  dht1.begin();
-  dht2.begin();
-  ads1.begin(0x48);
-  ads2.begin(0x49);
-  preferences.begin(PREFERENCES_FILE, false);
   
   //Pin declaration
   logMessage("Declaring pins");
@@ -168,15 +159,24 @@ void setup() {
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pinMode(configPin, INPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
-
+  
   //Turning off pumps
+  logMessage("Shuting down pumps");
   turnPumps(false, false, false, false, false, false);
+  
+  //Inicialization
+  logMessage("Iniciating sensors");
+  Wire.begin();
+  dht1.begin();
+  dht2.begin();
+  ads1.begin(0x48);
+  ads2.begin(0x49);
+  preferences.begin(PREFERENCES_FILE, false);
 
   int i2c_devices = I2CScanner();
   if(i2c_devices != 2){
     logMessage("Error with i2c_devices");
-    ESP.restart();
+    //ESP.restart();
   }
 
   //Check if config  
@@ -244,28 +244,35 @@ void setup() {
     }
     if(information.length() > 0){
       logMessage("WiFi>\t" + String(information));
-      String configurable_wifi_ssid = "";
+      String configurable_wifi_ssid_form = "";
       if(information.indexOf("ssid=") != -1){
-        configurable_wifi_ssid = information.substring(information.indexOf("ssid=")+5, information.indexOf("&", information.indexOf("ssid=")));
+        configurable_wifi_ssid_form = information.substring(information.indexOf("ssid=")+5, information.indexOf("&", information.indexOf("ssid=")));
       }
-      String configurable_wifi_pass = "";
+      String configurable_wifi_pass_form = "";
       if(information.indexOf("pass=") != -1){
-        configurable_wifi_pass = information.substring(information.indexOf("pass=")+5, information.indexOf("&", information.indexOf("pass=")));
+        configurable_wifi_pass_form = information.substring(information.indexOf("pass=")+5, information.indexOf("&", information.indexOf("pass=")));
       }
-      String configurable_tank_height_str = "";
-      if(information.indexOf("tank=") != -1){
-        configurable_tank_height_str = information.substring(information.indexOf("tank=")+5, information.indexOf("&", information.indexOf("tank=")));
+
+      String configurable_server_addr_form = "";
+      if(information.indexOf("addr=") != -1){
+        configurable_server_addr_form = information.substring(information.indexOf("addr=")+5, information.indexOf("&", information.indexOf("addr=")));
       }
-      float configurable_tank_height = configurable_tank_height_str.toFloat();
+
+      int configurable_server_port_form = 5000;
+      if(information.indexOf("port=") != -1){
+        configurable_server_port_form = information.substring(information.indexOf("port=")+5, information.indexOf("&", information.indexOf("port="))).toInt();
+      }
   
-      logMessage("WiFi>\tssid" + String(configurable_wifi_ssid));
-      logMessage("WiFi>\tpass" + String(configurable_wifi_pass));
-      logMessage("WiFi>\ttank" + String(configurable_tank_height));
+      logMessage("WiFi>\tssid: " + String(configurable_wifi_ssid_form));
+      logMessage("WiFi>\tpass: " + String(configurable_wifi_pass_form));
+      logMessage("WiFi>\taddr: " + String(configurable_server_addr_form));
+      logMessage("WiFi>\tport: " + String(configurable_server_port_form));
       
       logMessage("WiFi>\tSetting new parameters");
-      preferences.putString(PREFERENCES_SSID, configurable_wifi_ssid);
-      preferences.putString(PREFERENCES_SSID_PASSWORD, configurable_wifi_pass);
-      preferences.putFloat(PREFERENCES_TANK_HEIGHT, configurable_tank_height);
+      preferences.putString(PREFERENCES_SSID, configurable_wifi_ssid_form);
+      preferences.putString(PREFERENCES_SSID_PASSWORD, configurable_wifi_pass_form);
+      preferences.putString(PREFERENCES_SERVER_ADDRESS, configurable_server_addr_form);
+      preferences.putInt(PREFERENCES_SERVER_PORT, configurable_server_port_form);
     }
     //restart for apply changes
     logMessage("Restaring Irrigatron");
@@ -277,12 +284,12 @@ void setup() {
   logMessage("Getting configurables from EEPROM");
   configurable_wifi_ssid = preferences.getString(PREFERENCES_SSID, "");
   configurable_wifi_pass = preferences.getString(PREFERENCES_SSID_PASSWORD, "");
-  configurable_tank_height = preferences.getFloat(PREFERENCES_TANK_HEIGHT, 0.1);
-
-  if(configurable_tank_height <= 0){
-    configurable_tank_height = 0.1;
-  }
-
+  configurable_server_addr = preferences.getString(PREFERENCES_SERVER_ADDRESS, "");
+  configurable_server_port = preferences.getInt(PREFERENCES_SERVER_PORT, 5000);
+  
+  logMessage("WiFi>\tssid: " + String(configurable_wifi_ssid));
+  logMessage("WiFi>\tpass: " + String(configurable_wifi_pass));
+      
   if(configurable_wifi_ssid == ""){
     logMessage("irrigatron not configured");
     ESP.restart();
@@ -315,6 +322,11 @@ void setup() {
   logMessage("WIFI >\tConnected");
   Serial.print("WIFI>\tLocalIP: ");
   Serial.println(WiFi.localIP());
+  
+  logMessage("Server>\taddr: " + String(https.getStringHost()));
+  logMessage("Server>\tport: " + String(https.getPort()));
+  
+  serverTest();
 }
 
 
@@ -441,9 +453,9 @@ String readAlltoJSON(){
   readADS(1, 3, &soil_int6, &soil6);
   
   String json = "{\"datas\":[";
+  json += "{\"soil1\":\""+String(soil1,2)+"\"},";
   json += "{\"soil2\":\""+String(soil2,2)+"\"},";
   json += "{\"soil3\":\""+String(soil3,2)+"\"},";
-  json += "{\"soil1\":\""+String(soil1,2)+"\"},";
   json += "{\"soil4\":\""+String(soil4,2)+"\"},";
   json += "{\"soil5\":\""+String(soil5,2)+"\"},";
   json += "{\"soil6\":\""+String(soil6,2)+"\"},";
@@ -566,6 +578,13 @@ unsigned int sendData(String json_payload) {
     logMessage("REST >\tPayload length: " + String(json_payload.length()));
 
     if (WiFi.status() == WL_CONNECTED) {  //Check the current connection status
+      char buff[configurable_server_addr.length()+1];
+      for(int i = 0; i < configurable_server_addr.length(); i++){
+        buff[i] = configurable_server_addr.charAt(i);
+      }
+      buff[configurable_server_addr.length()] = '\0';
+      https.setValues(buff, configurable_server_port, true);
+      
       httpRequest = HTTPRequest(HTTP_POST, "/upload", json_payload);
       httpRequest.setHeader("User-Agent", "irrigatron");
       httpRequest.setHeader("Content-Type", "application/json");
@@ -576,7 +595,7 @@ unsigned int sendData(String json_payload) {
       
       logMessage("REST >\tResponse Code: "+ String(responseCode));
       logMessage("REST >\tResponse Payload: "+ responsePayload);
-      if(responseCode == HTTP_RESPONSE_OK){
+      if(responseCode == HTTP_RESPONSE_OK || responseCode == HTTP_RESPONSE_CREATED){
         logMessage("REST >\tData sended");
       } else if(responseCode == HTTP_RESPONSE_CONFLICT){
         logMessage("REST >\tSome of the payload send exists in the server");
@@ -608,6 +627,13 @@ unsigned int sendWatering(){
     logMessage("REST >\tWatering");
   
     if (WiFi.status() == WL_CONNECTED) {  //Check the current connection status
+      char buff[configurable_server_addr.length()+1];
+      for(int i = 0; i < configurable_server_addr.length(); i++){
+        buff[i] = configurable_server_addr.charAt(i);
+      }
+      buff[configurable_server_addr.length()] = '\0';
+      https.setValues(buff, configurable_server_port, true);
+      
       String json = "{";
       json += "\"pump0\":\""+String(pump_state[0])+"\",";
       json += "\"pump1\":\""+String(pump_state[1])+"\",";
@@ -617,7 +643,7 @@ unsigned int sendWatering(){
       json += "\"pump5\":\""+String(pump_state[5])+"\"";
       json += "}";
       
-      httpRequest = HTTPRequest(HTTP_POST, "/watering", "{}");
+      httpRequest = HTTPRequest(HTTP_POST, "/watering", json);
       httpRequest.setHeader("User-Agent", "irrigatron");
       httpRequest.setHeader("Content-Type", "application/json");
       httpResponse = https.sendRequest(httpRequest);
@@ -627,9 +653,7 @@ unsigned int sendWatering(){
       
       logMessage("REST >\tResponse Code: "+ String(responseCode));
       logMessage("REST >\tResponse Payload: "+ responsePayload);
-      if(responseCode == HTTP_RESPONSE_OK){
-        logMessage("REST >\tData sended");
-      } else if(responseCode == HTTP_RESPONSE_CREATED){
+      if(responseCode == HTTP_RESPONSE_OK || responseCode == HTTP_RESPONSE_CREATED){
         logMessage("REST >\tData sended");
       } else if(responseCode == HTTP_RESPONSE_CONFLICT){
         logMessage("REST >\tSome of the payload send exists in the server");
@@ -661,6 +685,13 @@ unsigned int getPumpOrder() {
     logMessage("REST >\tPumpOrder");
 
     if (WiFi.status() == WL_CONNECTED) {  //Check the current connection status
+      char buff[configurable_server_addr.length()+1];
+      for(int i = 0; i < configurable_server_addr.length(); i++){
+        buff[i] = configurable_server_addr.charAt(i);
+      }
+      buff[configurable_server_addr.length()] = '\0';
+      https.setValues(buff, configurable_server_port, true);
+      
       httpRequest = HTTPRequest(HTTP_POST, "/water", "{}");
       httpRequest.setHeader("User-Agent", "irrigatron");
       httpRequest.setHeader("Content-Type", "application/json");
@@ -707,42 +738,52 @@ unsigned int getPumpOrder() {
 
 bool serverTest(){
   unsigned int responseCode = 0;
+  
+  logMessage("REST >\tTest");
 
-  if(server_available){
-    logMessage("REST >\tUpload");
-
-    if (WiFi.status() == WL_CONNECTED) {  //Check the current connection status
-      httpRequest = HTTPRequest(HTTP_GET, "/test", "");
-      httpRequest.setHeader("User-Agent", "irrigatron");
-      httpRequest.setHeader("Content-Type", "application/json");
-      httpResponse = https.sendRequest(httpRequest);
-
-      responseCode = httpResponse.getResponseCode();
-      String responsePayload = httpResponse.getPayload();
-      
-      logMessage("REST >\tResponse Code: "+ String(responseCode));
-      logMessage("REST >\tResponse Payload: "+ responsePayload);
-      if(responseCode == HTTP_RESPONSE_OK || responseCode == HTTP_RESPONSE_CREATED){
-        logMessage("REST >\tData sended");
-        server_available = true;
-      } else if(responseCode == HTTP_RESPONSE_CONFLICT){
-        logMessage("REST >\tSome of the payload send exists in the server");
-      } else if(responseCode == HTTP_RESPONSE_PARTIAL_CONTENT){
-        logMessage("REST >\tSome of the payload sent is not valid");
-      } else {
-        logMessage("REST >\tCode: " + String(responseCode));
-      }
-    } else {
-      logMessage("REST >\tNot connected to WiFi.");
-      connectToWiFi();
+  if (WiFi.status() == WL_CONNECTED) {  //Check the current connection status
+    char buff[configurable_server_addr.length()+1];
+    for(int i = 0; i < configurable_server_addr.length(); i++){
+      buff[i] = configurable_server_addr.charAt(i);
     }
-    //un código de respuesta 0 significará que el servidor no está disponible
-    if(responseCode == 0){
-      server_available = false;
+    buff[configurable_server_addr.length()] = '\0';
+    https.setValues(buff, configurable_server_port, true);
+      
+    logMessage("REST >\tConnected to WiFi");
+    httpRequest = HTTPRequest(HTTP_GET, "/test", "");
+    httpRequest.setHeader("User-Agent", "irrigatron");
+    httpRequest.setHeader("Content-Type", "application/json");
+    
+    logMessage("REST >\tSending request");
+    httpResponse = https.sendRequest(httpRequest);
+
+    
+    
+    responseCode = httpResponse.getResponseCode();
+    String responsePayload = httpResponse.getPayload();
+    
+    logMessage("REST >\tResponse Code: "+ String(responseCode));
+    logMessage("REST >\tResponse Payload: "+ responsePayload);
+    if(responseCode == HTTP_RESPONSE_OK || responseCode == HTTP_RESPONSE_CREATED){
+      logMessage("REST >\tData sended");
+      server_available = true;
+    } else if(responseCode == HTTP_RESPONSE_CONFLICT){
+      logMessage("REST >\tSome of the payload send exists in the server");
+    } else if(responseCode == HTTP_RESPONSE_PARTIAL_CONTENT){
+      logMessage("REST >\tSome of the payload sent is not valid");
+    } else {
+      logMessage("REST >\tCode: " + String(responseCode));
     }
   } else {
-    logMessage("REST >\tServer is not available");
+    logMessage("REST >\tNot connected to WiFi.");
+    connectToWiFi();
+  }
+  //un código de respuesta 0 significará que el servidor no está disponible
+  if(responseCode == 0){
+    server_available = false;
+  } else {
+    server_available = true;
   }
 
-  return responseCode;
+  return server_available;
 }

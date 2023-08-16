@@ -64,9 +64,10 @@
 <body>
 	<form method="GET" action="./">
 		<h1>Irrigatron Configuration</h1>
-		<input type="text" placeholder="WiFi name" name="ssid">
-		<input type="password" placeholder="WiFi password" name="pass">
-		<input type="number" placeholder="Tank height" name="tank" step="0.1" min="0"> <!-- Agregado el atributo "step" -->
+		<input type="text" placeholder="WiFi name" name="ssid" required>
+		<input type="password" placeholder="WiFi password" name="pass" required>
+		<input type="text" placeholder="Server address" name="ssid" required>
+		<input type="number" placeholder="server port" min="0" max="65535" value="5000" name="ssid" required>
 		<input type="submit" value="Submit">
 	</form>
 </body>
