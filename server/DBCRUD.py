@@ -23,6 +23,7 @@ class DBCRUD:
 
 	def __get_conector(self):
 		try:
+			self.__printDebug("Connecting mysql://{}:{}@{}:{}/{}".format(self.db_user, self.db_pass, self.db_host, self.db_port, self.db_name))
 			return pymysql.connect(host=self.db_host, user=self.db_user, password=self.db_pass, db=self.db_name)
 		except Exception as e:
 			self.__printDebug("Exception: " + str(e))
@@ -126,11 +127,16 @@ class DBCRUD:
 			self.__printDebug("New data and condition must be one element at least")
 
 	def check(self, tablename, condition = None, attrib = None):
+		print(1)
 		conn = self.__get_conector()
+		print(2)
 		rows = self.select(tablename, condition, attrib)
+		print(3)
 		if len(rows) == 0 or self.select(tablename, condition, attrib)[0][0] == None:
+			print(4)
 			return False
 		else:
+			print(5)
 			return True
 
 	#Condition dict, attrib list

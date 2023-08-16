@@ -6,6 +6,7 @@ class PlantDTO:
 	name = ""
 	description = ""
 	pump = 0
+	tank_height = 0
 	inner_keys = ""
 
 	def fillByRow(self, row):
@@ -13,12 +14,14 @@ class PlantDTO:
 		self.name = row[1]
 		self.description = row[2]
 		self.pump = row[3]
-		self.inner_keys = row[4]
+		self.tank_height = row[4]
+		self.inner_keys = row[5]
 
-	def __init__(self, name="", description = "", pump=0, inner_keys=""):
+	def __init__(self, name="", description = "", pump=0, tank_height=0, inner_keys=""):
 		self.name = name
 		self.description = description
 		self.pump = pump
+		self.tank_height = tank_height
 		self.inner_keys = inner_keys
 
 	def __repr__(self):
@@ -34,7 +37,7 @@ class DataDTO:
 		self._id = row[0]
 		self.timestamp = int(row[1])
 		self.key = row[2]
-		self.value = row[3]
+		self.value = float(row[3])
 
 	def __init__(self, timestamp="", key="", value=""):
 		self.timestamp = timestamp
@@ -97,7 +100,7 @@ class DAO:
 
 	def init(self):
 		#Tabla que almacena los proyectos
-		self.db.create_table('plants', {'name':'VARCHAR(256)','description':'VARCHAR(1024)', 'pump':'INT', 'inner_keys':'VARCHAR(1024)'})
+		self.db.create_table('plants', {'name':'VARCHAR(256)','description':'VARCHAR(1024)', 'pump':'INT', 'tank_height':'FLOAT', 'inner_keys':'VARCHAR(1024)'})
 		self.db.create_table('datas', {'timestamp':'INT', 'inner_key':'VARCHAR(1024)', 'inner_value':'FLOAT'})
 		self.db.create_table('waterings', {'plant_id':'INT', 'timestamp':'INT'})
 		self.db.create_table('conditions', {'plant_id':'INT', 'inner_group':'INT', 'inner_key':'VARCHAR(1024)', 'inner_condition':'VARCHAR(32)', 'inner_value':'FLOAT'})
@@ -106,9 +109,9 @@ class DAO:
 	#### PLANTS ####
 	def updatePlant(self, plant):
 		if not self.db.check("plants", {'name':plant.name}):
-			self.db.insert("plants", {'name':plant.name, 'description':plant.description, 'pump':plant.pump, 'inner_keys':plant.inner_keys})
+			self.db.insert("plants", {'name':plant.name, 'description':plant.description, 'pump':plant.pump, 'tank_height':plant.tank_height, 'inner_keys':plant.inner_keys})
 		else:
-			self.db.update("plants", {'description':plant.description, 'pump':plant.pump, 'inner_keys':plant.inner_keys}, {'name':plant.name})
+			self.db.update("plants", {'description':plant.description, 'pump':plant.pump, 'tank_height':plant.tank_height, 'inner_keys':plant.inner_keys}, {'name':plant.name})
 
 	def getPlants(self):
 		rows = self.db.select("plants")
@@ -158,6 +161,10 @@ class DAO:
 			for row in rows:
 				data = DataDTO()
 				data.fillByRow(row)
+
+				if inner_key == "tank_height":
+					data.value = int(((plant.tank_height-data.value)/plant.tank_height)*100)
+					print(data.value)
 				datas.append(data)
 
 		return datas
@@ -170,10 +177,14 @@ class DAO:
 
 		datas = []
 		for inner_key in inners_keys:
-			rows = self.db.select("datas", {"inner_key:":inner_key})
+			rows = self.db.select("datas", {"inner_key":inner_key})
 			if len(rows) > 0:
 				data = DataDTO()
 				data.fillByRow(rows[-1])
+
+				if inner_key == "tank_height":
+					data.value = int(((plant.tank_height-data.value)/plant.tank_height)*100)
+
 				datas.append(data)
 
 		return datas
@@ -184,11 +195,10 @@ class DAO:
 			inner_keys.append(row[0])
 		return inner_keys
 
-
 	#### WATERINGS ####
 	def createWatering(self, watering):
-		if not self.db.check("waterings", {'plant_id':watering.plant._id, 'timestamp':data.timestamp}):
-			self.db.insert("waterings", {'plant_id':watering.plant._id, 'timestamp':data.timestamp})
+		if not self.db.check("waterings", {'plant_id':watering.plant._id, 'timestamp':watering.timestamp}):
+			self.db.insert("waterings", {'plant_id':watering.plant._id, 'timestamp':watering.timestamp})
 
 	def getWateringsByPlant(self, plant):
 		rows = self.db.select("waterings", {'plant_id':plant._id})
@@ -198,7 +208,6 @@ class DAO:
 			watering.fillByRow(row)
 			waterings.append(watering)
 		return waterings
-
 
 	#### CONDITIONS ####
 	def updateCondition(self, condition):

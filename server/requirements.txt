@@ -1,2 +1,4 @@
 flask
 flask-cors
+pymysql
+cryptography==3.4.8

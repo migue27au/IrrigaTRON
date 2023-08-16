@@ -18,7 +18,8 @@ app = Flask(__name__)
 CORS(app)
 app.config.from_object(Config())
 
-dao = DAO.DAO("127.0.0.1", 3306, "IRRIGATRON", "IRRIGATRON", "IRRIGATRON", debug=True)
+dao = DAO.DAO("db", 3306, "IRRIGATRON", "IRRIGATRON", "IRRIGATRON", debug=True)
+#dao = DAO.DAO("127.0.0.1", 3306, "IRRIGATRON", "IRRIGATRON", "IRRIGATRON", debug=True)
 dao.init()
 
 must_water = {}
@@ -40,7 +41,7 @@ def home():
 def newPlant():
 	data = request.form
 	print(data)
-	plant = DAO.PlantDTO(data["name"], data["description"], data["pump"])
+	plant = DAO.PlantDTO(data["name"], data["description"], data["pump"], data["tank_height"])
 	
 	if(len(dao.getPlants()) >= 8):
 		print("cannot create a new plant")
@@ -75,7 +76,20 @@ def homePlant(plant_name):
 
 	inner_keys.append("time")	##añado el time como inner key
 
-	return render_template('plant.html', plant=plant, plants=plants, inner_keys=inner_keys, plant_data=plant_data, condition_groups=condition_groups)
+	last_tank_height = dao.getLastDatasByPlant(plant, "tank_height")
+	print(last_tank_height)
+	if len(last_tank_height) == 0:
+		last_tank_height = 0
+	else:
+		last_tank_height = float(last_tank_height[0].value)
+
+	water_history = []
+	for watering in dao.getWateringsByPlant(plant):
+		water_history.append(watering.timestamp)
+		
+	print(water_history)
+
+	return render_template('plant.html', plant=plant, plants=plants, water_history=water_history, inner_keys=inner_keys, plant_data=plant_data, condition_groups=condition_groups, tank_height=last_tank_height)
 
 @app.route('/plant/<plant_name>/force_water', methods=['POST'])
 def forceWater(plant_name):
@@ -139,7 +153,9 @@ def upload():
 
 	if "datas" in data.keys():
 		for d in data["datas"]:
-			data_dto = DAO.DataDTO(timestamp=int(time.time()), key=list(d.keys())[0], value=d[list(d.keys())[0]])
+			inner_key = list(d.keys())[0]
+			inner_value = d[inner_key]
+			data_dto = DAO.DataDTO(timestamp=int(time.time()), key=inner_key, value=inner_value)
 			dao.updateData(data_dto)
 
 		response = {'message': 'Data OK'}
@@ -154,17 +170,21 @@ def watering():
 
 	print(data);
 
-	if "pump" in data.keys():
-		plant = dao.getPlantByPump(data["pump"])
-		if plant != None:
-			watering = DAO.WateringDTO(plant, timestamp=int(time.time()))
-			dao.createWatering(watering)
+	for key in data.keys():
 
-		response = {'message': 'Data OK'}
-		return make_response(json.dumps(response), 201)
-	else:
-		response = {'message': 'datas is mandatory'}
-		return make_response(json.dumps(response), 400)
+		if data[key] == '1':
+			try:
+				plant = dao.getPlantByPump(int(key.replace("pump", "")))
+				if plant != None:
+					watering = DAO.WateringDTO(plant, timestamp=int(time.time()))
+					print("new watering")
+					dao.createWatering(watering)
+			except:
+				pass
+
+	response = {'message': 'Data OK'}
+	return make_response(json.dumps(response), 201)
+	
 
 @app.route('/water', methods=['POST'])
 def water():
@@ -173,7 +193,6 @@ def water():
 	print(data);
 
 	pump_states = {"pump0":False, "pump1":False, "pump2":False, "pump3":False, "pump4":False, "pump5":False, "pump6":False, "pump7":False}
-
 	for index,key in enumerate(pump_states.keys()):
 		plant = dao.getPlantByPump(index)
 		if plant != None:
@@ -193,16 +212,20 @@ def water():
 						groups[str(condition.group)] = []
 					groups[str(condition.group)].append(condition)
 
-				for key in groups.keys():
+				for group_key in groups.keys():
 					condition_true_counter = 0
 
-					for condition in groups[key]:
+					for condition in groups[group_key]:
+						print(condition.key, condition.value)
 						if condition.key != "time":
-							last_data = dao.getLastDatasByPlant(plant, condition.key)
-							if last_data != None:
-								if ((condition.condition == "greater" and last_data > condition.value)
+							last_datas = dao.getLastDatasByPlant(plant, condition.key)
+							if last_datas != None and len(last_datas) > 0:
+								last_data = last_datas[0].value
+								print(last_data)
+								if ((condition.condition == "higher" and last_data > condition.value)
 									or (condition.condition == "lower" and last_data < condition.value)):
 									condition_true_counter += 1
+									print("esta es true")
 						else:
 							now = datetime.now().time()
 							time_in_condition = str(condition.value).split(".")
@@ -211,11 +234,12 @@ def water():
 							time_in_condition[0] = int(time_in_condition[0])
 							time_in_condition[1] = int(time_in_condition[1])
 
-							if ((condition.condition == "greater" and now.hour >= time_in_condition[0] and now.minute > time_in_condition[1])
+							if ((condition.condition == "higher" and now.hour >= time_in_condition[0] and now.minute > time_in_condition[1])
 								or (condition.condition == "lower" and now.hour <= time_in_condition[0] and now.minute < time_in_condition[1])):
 								condition_true_counter += 1
 
-					if condition_true_counter >= len(groups[key]):
+					print(condition_true_counter)
+					if condition_true_counter >= len(groups[group_key]):
 						pump_states[key] = True
 	
 	print(json.dumps(pump_states))
@@ -223,4 +247,4 @@ def water():
 	
 
 #app.run(host=host, debug=True, port=sqlete_defaults.http_port, ssl_context=(sqlete_defaults.sqlete_framework_path+'/sqlete/certs/cert.pem', sqlete_defaults.sqlete_framework_path+'/sqlete/certs/key.pem'))
-app.run(host="0.0.0.0", debug=True, port=80)
+app.run(host="0.0.0.0", debug=True, port=5000)

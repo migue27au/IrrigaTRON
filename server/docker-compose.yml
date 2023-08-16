@@ -1,4 +1,9 @@
 version: "3.3"
+networks:
+  irrigatron_network:
+    name: irrigatron_network
+    external: false
+
 services:
   db:
     image: mysql:latest
@@ -8,10 +13,18 @@ services:
       MYSQL_DATABASE: IRRIGATRON
       MYSQL_USER: IRRIGATRON
       MYSQL_PASSWORD: IRRIGATRON
+    restart: unless-stopped
     volumes:
       - /tmp/mysql:/var/lib/mysql
     ports:
       - '3306:3306'
+    networks:
+      - irrigatron_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 5
   php-my-admin:
     image: phpmyadmin/phpmyadmin:latest
     container_name: irrigatron_phpmyadmin
@@ -25,5 +38,20 @@ services:
       PMA_PASSWORD: thepasswordsupersecreto
     ports:
       - '8081:80'
-
+    networks:
+      - irrigatron_network
+  irrigatron:
+    image: irrigatron:latest
+    container_name: irrigatron_main
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    ports:
+      - '5000:5000'
+    networks:
+      - irrigatron_network
 
